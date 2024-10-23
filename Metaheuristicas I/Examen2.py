@@ -1,3 +1,18 @@
+import subprocess
+import sys
+
+# Función para instalar librerías
+def install_libraries():
+    required_libraries = ['matplotlib', 'numpy', 'pandas', 'pyswarms', 'multiprocessing']
+    for lib in required_libraries:
+        try:
+            __import__(lib)
+        except ImportError:
+            subprocess.check_call([sys.executable, "-m", "pip", "install", lib])
+
+# Instalar las librerías necesarias
+install_libraries()
+
 import json
 import time
 import multiprocessing as mp
@@ -5,6 +20,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pyswarms as ps
 import pandas as pd
+
+# Instalar las librerias necesarias
+
 
 def read_json(file_path='reviews.json'):
     with open(file_path) as file:
@@ -14,11 +32,6 @@ def process_window(tasks):
     return sum(task['time'] for task in tasks)
 
 def sequential_processing(tasks, window_size):
-    #total_time = 0
-    #for i in range(0, len(tasks), window_size):
-        #window = tasks[i:i + window_size]
-        #total_time += process_window(window)
-    #return total_time
     total_time = 0
     for i in range(0, len(tasks), window_size):
         window = tasks[i:i + window_size]
@@ -28,13 +41,6 @@ def sequential_processing(tasks, window_size):
     return total_time
 
 def parallel_processing(tasks, window_size, num_processors):
-    #with mp.Pool(num_processors) as pool:
-        #total_time = 0
-        #for i in range(0, len(tasks), window_size * num_processors):
-            #windows = [tasks[i + j * window_size : i + (j + 1) * window_size] for j in range(num_processors)]
-            #window_times = pool.map(process_window, windows)
-            #total_time += max(window_times)
-    #return total_time
     total_time = 0
     try:
         with mp.Pool(num_processors) as pool:
@@ -58,7 +64,7 @@ def pso_assignment(window, num_processors):
     num_tasks = len(window)
     bounds = (np.zeros(num_tasks), np.ones(num_tasks) * (num_processors - 1))
     options = {'c1': 0.5, 'c2': 0.3, 'w': 0.9}
-    optimizer = ps.single.GlobalBestPSO(n_particles=60, dimensions=num_tasks, options=options, bounds=bounds)
+    optimizer = ps.single.GlobalBestPSO(n_particles=50, dimensions=num_tasks, options=options, bounds=bounds)
     best_cost, best_pos = optimizer.optimize(lambda x: pso_objective(x, window, num_processors), iters=50)
     return best_cost
 
@@ -80,25 +86,20 @@ def measure_times(tasks, window_size, num_processors, max_reviews):
         current_tasks = tasks[:count]
 
         start_time = time.time()
-        sequential_processing(current_tasks, window_size)
-        sequential_times.append(time.time() - start_time)
-        #print(f'Sequential processing of {count} reviews completed')
-        #print(f'Sequential processing time: {sequential_times[-1]}')
-
-        start_time = time.time()
         parallel_processing(current_tasks, window_size, num_processors)
         parallel_times.append(time.time() - start_time)
+        print(f"Finished processing {count} reviews in parallel")
 
         start_time = time.time()
         pso_processing(current_tasks, window_size, num_processors)
         pso_times.append(time.time() - start_time)
+        print(f"Finished processing {count} reviews with PSO")
 
-    return review_counts, sequential_times, parallel_times, pso_times
+    return review_counts, parallel_times, pso_times
 
 # Grafica de Lineas
 def plot_results(review_counts, parallel_times, pso_times):
     plt.figure(figsize=(12, 8))
-    #plt.plot(review_counts, sequential_times, label='Sequential', marker='o')
     plt.plot(review_counts, parallel_times, label='Parallel', marker='o')
     plt.plot(review_counts, pso_times, label='Sequential', marker='o')
     plt.xlabel('Number of Reviews')
@@ -109,16 +110,19 @@ def plot_results(review_counts, parallel_times, pso_times):
     plt.savefig('processing_times_comparison.png')
     plt.show()
 
-def present_results(review_counts, pso_times, parallel_times, sequential_times):
+def present_results(review_counts, pso_times, parallel_times):
     # Calcular el Speedup
     speedup = [p / o for p, o in zip(parallel_times, pso_times)]
+    # Eficiencia de los procesos paralelos
+    efficiency = [s / 8 for s in speedup]
 
     # Crear un DataFrame para mostrar la tabla
     results_df = pd.DataFrame({
         'Numero de Reviews': review_counts,
         'Tiempo Secuencial (s)': pso_times,
         'Tiempo Paralelo (s)': parallel_times,
-        'Speedup': speedup
+        'Speedup': speedup,
+        'Eficiencia': efficiency
     })
 
     # Mostrar la tabla en consola
@@ -158,10 +162,10 @@ def main():
     num_processors = 8
     max_reviews = 100000
 
-    tasks = read_json("Metaheuristicas I/reviews.json")
-    review_counts, sequential_times, parallel_times, pso_times = measure_times(tasks, window_size, num_processors, max_reviews)
+    tasks = read_json("reviews.json")
+    review_counts, parallel_times, pso_times = measure_times(tasks, window_size, num_processors, max_reviews)
     # Mostrar los resultados en la tabla
-    present_results(review_counts, pso_times, parallel_times, sequential_times)
+    present_results(review_counts, pso_times, parallel_times)
     # Graficar los resultados
     plot_results(review_counts, parallel_times, pso_times)
     # Graficar los resultados en barras
