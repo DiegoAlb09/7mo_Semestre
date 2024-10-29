@@ -158,7 +158,7 @@ def plot_bar_results(review_counts, pso_times, parallel_times):
     plt.show()
 
 def main():
-    window_size = 100
+    window_size = 24
     num_processors = 8
     max_reviews = 100000
 

@@ -45,7 +45,7 @@ def measure_time(window_size, num_processors, max_reviews, tasks):
     return pso_times
 
 def main():
-    window_size = 100
+    window_size = 24
     num_processors = 8
     max_reviews = 100000
     tasks = read_json("reviews.json")
