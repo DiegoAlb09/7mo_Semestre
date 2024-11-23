@@ -52,6 +52,11 @@ def genetic_algorithm(window_times):
     
     toolbox.register("evaluate", evaluate_individual)  # Actualiza la función de evaluación en el toolbox
     
+    # Imprime la población inicial antes de comenzar las generaciones
+    #print("Población inicial:")
+    #for i, ind in enumerate(population):
+        #print(f"Individuo {i}: {ind}")
+
     # Calcula la aptitud (fitness) de la población inicial
     for ind in population:
         ind.fitness.values = toolbox.evaluate(ind)
