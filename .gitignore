@@ -30,4 +30,9 @@ report.log.11
 report.log.20
 parallel_times.csv
 secuential_times.csv
-
+sequential_times.csv
+PSO.csv
+PSO_sequential.csv
+Genetico_sequential.csv
+AIS_Parallel.csv
+AG_parallel.csv

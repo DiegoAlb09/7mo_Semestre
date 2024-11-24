@@ -8,7 +8,7 @@ import pandas as pd
 from deap import base, creator, tools, algorithms
 
 # Cargar datos JSON con los tiempos de procesamiento de reseñas de películas
-with open('reviews.json') as f:
+with open('C:/Users/diego/OneDrive/Escritorio/Universidad/7mo_Semestre/Metaheuristicas I/Proyecto_Final/reviews.json') as f:
     processing_times = json.load(f)  # Lista de tiempos de procesamiento para cada reseña
 
 # Parámetros generales del problema
